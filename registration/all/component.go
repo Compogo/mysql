@@ -42,7 +42,7 @@ var Component = &component.Component{
 		mysql.Component,
 	},
 	Configuration: component.StepFunc(func(container container.Container) error {
-		return container.Invoke(func(managerCfg dbClient.Config, migratorCfg *dbMigrator.Config, generatorCfg *dbSqlGenerator.Config) {
+		return container.Invoke(func(managerCfg *dbClient.Config, migratorCfg *dbMigrator.Config, generatorCfg *dbSqlGenerator.Config) {
 			if managerCfg.Driver != mysql.MySQL {
 				return
 			}
