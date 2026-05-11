@@ -1,6 +1,8 @@
 package all
 
 import (
+	"strings"
+
 	"github.com/Compogo/compogo/component"
 	"github.com/Compogo/compogo/container"
 	dbClient "github.com/Compogo/db-client"
@@ -43,7 +45,7 @@ var Component = &component.Component{
 	},
 	Configuration: component.StepFunc(func(container container.Container) error {
 		return container.Invoke(func(managerCfg *dbClient.Config, migratorCfg *dbMigrator.Config, generatorCfg *dbSqlGenerator.Config) {
-			if managerCfg.Driver != mysql.MySQL {
+			if strings.ToLower(managerCfg.Driver) != strings.ToLower(mysql.MySQL) {
 				return
 			}
 

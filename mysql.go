@@ -6,14 +6,13 @@ import (
 	"github.com/Compogo/compogo/logger"
 	"github.com/Compogo/db-client/client"
 	"github.com/Compogo/db-client/connection"
-	"github.com/Compogo/db-client/driver"
 	logger2 "github.com/Compogo/db-client/logger"
 	"github.com/go-sql-driver/mysql"
 )
 
 // MySQL is the driver identifier for MySQL database.
 // It is used across all Compogo database components (client, migrator, generator).
-const MySQL driver.Driver = "mysql"
+const MySQL = "mysql"
 
 // Client is an alias for client.Client to provide a cleaner API.
 // Users can work with mysql.Client without importing the internal client package.
@@ -56,6 +55,6 @@ func (m *mysqlClient) SQL() *sql.DB {
 	return m.DB
 }
 
-func (m *mysqlClient) Driver() driver.Driver {
+func (m *mysqlClient) DriverName() string {
 	return MySQL
 }
