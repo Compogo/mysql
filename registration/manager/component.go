@@ -1,36 +1,22 @@
 package manager
 
 import (
-	"github.com/Compogo/compogo/component"
-	"github.com/Compogo/compogo/container"
+	"github.com/Compogo/compogo"
 	dbClient "github.com/Compogo/db-client"
-	"github.com/Compogo/db-client/client"
 	"github.com/Compogo/mysql"
 )
 
-// Component registers MySQL client factory with db-client.
-// It depends on both dbClient.Component and mysql.Component
-// to ensure they are initialized before registration.
-//
-// Usage:
-//
-//	compogo.WithComponents(
-//	    db_client.Component,
-//	    mysql.Component,
-//	    manager.Component,  // registers MySQL client factory
-//	)
-var Component = &component.Component{
-	Dependencies: component.Components{
-		dbClient.Component,
-		mysql.Component,
+// Component — компонент регистрации MySQL драйвера для db-client.
+var Component = compogo.Component{
+	Dependencies: compogo.Components{
+		&dbClient.Component,
+		&mysql.Component,
 	},
 }
 
-// init registers MySQL client constructor with db-client.
-// The constructor retrieves the MySQL client from container and
-// returns it as a client.Client interface.
+// Регистрация драйвера MySQL в системе db-client.
 func init() {
-	dbClient.Registration(mysql.MySQL, func(container container.Container) (client.Client, error) {
+	dbClient.Registration(mysql.DriverName, func(container compogo.Container) (dbClient.Client, error) {
 		var c mysql.Client
 
 		err := container.Invoke(func(mysqlClient mysql.Client) {

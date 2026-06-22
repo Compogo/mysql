@@ -1,33 +1,24 @@
 package sql_generator
 
 import (
-	"github.com/Compogo/compogo/component"
+	"github.com/Compogo/compogo"
 	sqlGenerator "github.com/Compogo/db-sql-generator"
 	"github.com/Compogo/mysql"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 )
 
-// Component registers MySQL dialect with the SQL generator.
-// It depends on both sqlGenerator.Component and mysql.Component
-// to ensure they are initialized before registration.
-//
-// Usage:
-//
-//	compogo.WithComponents(
-//	    db_client.Component,
-//	    db_sql_generator.Component,
-//	    mysql.Component,
-//	    sql_generator.Component,  // registers MySQL dialect
-//	)
-var Component = &component.Component{
-	Dependencies: component.Components{
-		sqlGenerator.Component,
-		mysql.Component,
+const DialectName = "mysql"
+
+// Component — компонент регистрации MySQL диалекта для SQL-генератора.
+// Регистрирует соответствие между драйвером "mysql" и диалектом "mysql".
+var Component = compogo.Component{
+	Dependencies: compogo.Components{
+		&sqlGenerator.Component,
+		&mysql.Component,
 	},
 }
 
-// init registers MySQL dialect alias with the SQL generator.
-// This allows goqu to generate MySQL-specific SQL syntax.
+// Регистрация диалекта MySQL в системе SQL-генератора.
 func init() {
-	sqlGenerator.Registration(mysql.MySQL, "mysql")
+	sqlGenerator.Registration(mysql.DriverName, DialectName)
 }

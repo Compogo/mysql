@@ -3,34 +3,28 @@ package mysql
 import (
 	"database/sql"
 
-	"github.com/Compogo/compogo/logger"
-	"github.com/Compogo/db-client/client"
-	"github.com/Compogo/db-client/connection"
-	logger2 "github.com/Compogo/db-client/logger"
+	"github.com/Compogo/compogo"
+	dbClient "github.com/Compogo/db-client"
+	"github.com/Compogo/runner"
 	"github.com/go-sql-driver/mysql"
 )
 
-// MySQL is the driver identifier for MySQL database.
-// It is used across all Compogo database components (client, migrator, generator).
-const MySQL = "mysql"
+// DriverName — имя драйвера MySQL.
+const DriverName = "mysql"
 
-// Client is an alias for client.Client to provide a cleaner API.
-// Users can work with mysql.Client without importing the internal client package.
-type Client client.Client
+// Client — интерфейс клиента MySQL (наследует db_client.Client).
+type Client dbClient.Client
 
-// mysqlClient is the internal implementation of the MySQL client.
-// It embeds *sql.DB and provides the required methods.
+// mysqlClient — внутренняя реализация клиента MySQL.
 type mysqlClient struct {
 	*sql.DB
 }
 
-// NewMySQL creates a new MySQL client with automatic decorators.
-// The returned client is wrapped with:
-//   - connection.Limiter (circuit breaker for error protection)
-//   - logger.Logger (query logging at DEBUG level)
-//
-// This provides production-ready behavior out of the box.
-func NewMySQL(logger logger.Logger, config *Config) (Client, error) {
+// NewMySQL создаёт новый клиент MySQL.
+// Оборачивает соединение в:
+//   - Limiter — защита от ошибок соединения
+//   - Logger — логирование всех SQL-запросов
+func NewMySQL(logger compogo.Logger, config *Config, runner runner.Runner) (Client, error) {
 	mysqlConfig, err := mysql.ParseDSN(config.DSN)
 	if err != nil {
 		return nil, err
@@ -41,11 +35,12 @@ func NewMySQL(logger logger.Logger, config *Config) (Client, error) {
 		return nil, err
 	}
 
-	return logger2.NewLogger(
-		connection.NewLimiter(
+	return dbClient.NewLogger(
+		dbClient.NewLimiter(
 			&mysqlClient{sql.OpenDB(connector)},
-			int64(config.ErrorLimit),
+			config.ErrorLimit,
 			config.ErrorTimeout,
+			runner,
 		),
 		logger,
 	), nil
@@ -56,5 +51,5 @@ func (m *mysqlClient) SQL() *sql.DB {
 }
 
 func (m *mysqlClient) DriverName() string {
-	return MySQL
+	return DriverName
 }

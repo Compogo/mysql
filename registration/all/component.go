@@ -3,8 +3,7 @@ package all
 import (
 	"strings"
 
-	"github.com/Compogo/compogo/component"
-	"github.com/Compogo/compogo/container"
+	"github.com/Compogo/compogo"
 	dbClient "github.com/Compogo/db-client"
 	dbMigrator "github.com/Compogo/db-migrator"
 	dbSqlGenerator "github.com/Compogo/db-sql-generator"
@@ -14,43 +13,30 @@ import (
 	sqlGenerator "github.com/Compogo/mysql/registration/sql_generator"
 )
 
-// Component is a complete MySQL integration that automatically:
-//   - Provides the MySQL client
-//   - Registers MySQL with db-client
-//   - Registers MySQL migration driver with db-migrator
-//   - Registers MySQL dialect with db-sql-generator
-//   - Automatically propagates driver selection to all components
+// Component — компонент, объединяющий все регистрации для MySQL.
+// Подключает MySQL как драйвер для:
+//   - db-client (менеджер БД)
+//   - db-migrator (миграции)
+//   - db-sql-generator (SQL-генератор)
 //
-// Usage (recommended for single-database applications):
+// Пример:
 //
-//	compogo.WithComponents(
-//	    db_client.Component,
-//	    db_migrator.Component,
-//	    db_sql_generator.Component,
-//	    mysql.Component,
-//	    all.Component,  // ← everything automatically wired
-//	)
-//
-// Then just select the driver via flag:
-//
-//	./myapp --db.driver=mysql --db.mysql.dsn="..."
-//
-// The migrator and SQL generator will automatically use the same driver.
-var Component = &component.Component{
-	Dependencies: component.Components{
-		manager.Component,
-		migrator.Component,
-		sqlGenerator.Component,
-		mysql.Component,
+//	app.AddComponents(&all.Component)
+var Component = &compogo.Component{
+	Dependencies: compogo.Components{
+		&manager.Component,
+		&migrator.Component,
+		&sqlGenerator.Component,
+		&mysql.Component,
 	},
-	Configuration: component.StepFunc(func(container container.Container) error {
+	Configuration: compogo.StepFunc(func(container compogo.Container) error {
 		return container.Invoke(func(managerCfg *dbClient.Config, migratorCfg *dbMigrator.Config, generatorCfg *dbSqlGenerator.Config) {
-			if strings.ToLower(managerCfg.Driver) != strings.ToLower(mysql.MySQL) {
+			if strings.ToLower(managerCfg.Driver) != strings.ToLower(mysql.DriverName) {
 				return
 			}
 
-			migratorCfg.Driver = mysql.MySQL
-			generatorCfg.Driver = mysql.MySQL
+			migratorCfg.Driver = mysql.DriverName
+			generatorCfg.Driver = mysql.DriverName
 		})
 	}),
 }

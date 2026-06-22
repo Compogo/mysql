@@ -1,45 +1,39 @@
 package mysql
 
 import (
-	"github.com/Compogo/compogo/component"
-	"github.com/Compogo/compogo/container"
+	"github.com/Compogo/compogo"
 	"github.com/Compogo/compogo/flag"
+	"github.com/Compogo/runner"
 )
 
-// Component is a ready-to-use Compogo component that provides a MySQL client.
-// It automatically:
-//   - Registers Config and NewMySQL in the DI container
-//   - Adds command-line flags for MySQL configuration
-//   - Applies configuration during Configuration phase
+// Component — компонент MySQL для Compogo.
+// Регистрирует конфигурацию и клиент в DI-контейнере.
 //
-// Usage:
+// Пример подключения:
 //
-//	compogo.WithComponents(
-//	    db_client.Component,
-//	    mysql.Component,
-//	    // ... other components
-//	)
+//	app.AddComponents(&mysql.Component)
 //
-// The MySQL client can be injected into any component:
-//
-//	type UserService struct {
-//	    db mysql.Client
-//	}
-var Component = &component.Component{
-	Init: component.StepFunc(func(container container.Container) error {
+//	var client mysql.Client
+//	container.Invoke(func(c mysql.Client) { client = c })
+//	rows, err := client.Query("SELECT * FROM users")
+var Component = compogo.Component{
+	Dependencies: compogo.Components{
+		&runner.Component,
+	},
+	Init: compogo.StepFunc(func(container compogo.Container) error {
 		return container.Provides(
 			NewConfig,
 			NewMySQL,
 		)
 	}),
-	BindFlags: component.BindFlags(func(flagSet flag.FlagSet, container container.Container) error {
+	BindFlags: compogo.BindFlags(func(flagSet flag.FlagSet, container compogo.Container) error {
 		return container.Invoke(func(config *Config) {
 			flagSet.StringVar(&config.DSN, DsnFieldName, "", "mysql dsn string connection")
-			flagSet.Uint32Var(&config.ErrorLimit, ConnectionErrorLimitFieldName, ConnectionErrorLimitDefault, "")
+			flagSet.Uint64Var(&config.ErrorLimit, ConnectionErrorLimitFieldName, ConnectionErrorLimitDefault, "")
 			flagSet.DurationVar(&config.ErrorTimeout, ConnectionErrorTimeoutFieldName, ConnectionErrorTimeoutDefault, "")
 		})
 	}),
-	Configuration: component.StepFunc(func(container container.Container) error {
+	Configuration: compogo.StepFunc(func(container compogo.Container) error {
 		return container.Invoke(Configuration)
 	}),
 }
