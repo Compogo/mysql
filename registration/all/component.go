@@ -22,7 +22,7 @@ import (
 // Пример:
 //
 //	app.AddComponents(&all.Component)
-var Component = &compogo.Component{
+var Component = compogo.Component{
 	Dependencies: compogo.Components{
 		&manager.Component,
 		&migrator.Component,
